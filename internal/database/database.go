@@ -15,6 +15,8 @@ import (
 
 // Service represents a service that interacts with a database.
 type Service interface {
+	Conn() *sql.DB
+
 	// Health returns a map of health status information.
 	// The keys and values in the map are service-specific.
 	Health() map[string]string
@@ -50,6 +52,10 @@ func New() Service {
 		db: db,
 	}
 	return dbInstance
+}
+
+func (s *service) Conn() *sql.DB {
+	return s.db
 }
 
 // Health checks the health of the database connection by pinging the database.

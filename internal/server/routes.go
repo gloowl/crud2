@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crud2/internal/repository"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -15,6 +16,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(s.corsMiddleware)
 
 	r.HandleFunc("/", s.HelloWorldHandler)
+	r.HandleFunc("/ping", s.PingHandler)
+
+	repo := repository.NewHerbRepository(s.db.Conn())
+	herbHandler := NewHerbHandler(repo)
+	herbHandler.RegisterRoutes(r)
 
 	r.HandleFunc("/health", s.healthHandler)
 
@@ -43,6 +49,18 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 func (s *Server) HelloWorldHandler(w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]string)
 	resp["message"] = "Hello World"
+
+	jsonResp, err := json.Marshal(resp)
+	if err != nil {
+		log.Fatalf("error handling JSON marshal. Err: %v", err)
+	}
+
+	_, _ = w.Write(jsonResp)
+}
+
+func (s *Server) PingHandler(w http.ResponseWriter, r *http.Request) {
+	resp := make(map[string]string)
+	resp["message"] = "pong"
 
 	jsonResp, err := json.Marshal(resp)
 	if err != nil {
