@@ -22,14 +22,19 @@ func (r *HerbRepository) Create(herb *models.Herb) error {
 
 	query := `
 		INSERT INTO herbs (name, latin_name, description, is_poisonous, image_path) 
-		VALUES ($1, $2, $3, $4, $5) 
-		RETURNING id, created_at`
+		VALUES (?, ?, ?, ?, ?)`
 
-	err := r.db.QueryRow(query, herb.Name, herb.LatinName, herb.Description, herb.IsPoisonous, herb.ImagePath).Scan(&herb.ID, &herb.CreatedAt)
+	res, err := r.db.Exec(query, herb.Name, herb.LatinName, herb.Description, herb.IsPoisonous, herb.ImagePath)
+
+	// err := r.db.QueryRow(query, herb.Name, herb.LatinName, herb.Description, herb.IsPoisonous, herb.ImagePath).Scan(&herb.ID, &herb.CreatedAt)
 
 	if err != nil {
 		return fmt.Errorf("ошибка создания травы: %v", err)
 	}
+
+	id, _ := res.LastInsertId()
+	herb.ID = int(id)
+
 	return nil
 }
 
@@ -39,7 +44,7 @@ func (r *HerbRepository) GetByID(id int) (*models.Herb, error) {
 	query := `
 		SELECT id, name, latin_name, description, is_poisonous, image_path, created_at
 		FROM herbs 
-		WHERE id = $1`
+		WHERE id = ?;`
 
 	err := r.db.QueryRow(query, id).Scan(
 		&herb.ID, &herb.Name, &herb.LatinName, &herb.Description,
@@ -94,12 +99,12 @@ func (r *HerbRepository) Update(herb *models.Herb) error {
 
 	query := `
 		UPDATE herbs 
-		SET name = $2, latin_name = $3, description = $4, 
-		    is_poisonous = $5, image_path = $6
-		WHERE id = $1`
+		SET name = ?, latin_name = ?, description = ?, 
+		    is_poisonous = ?, image_path = ?
+		WHERE id = ?;`
 
-	result, err := r.db.Exec(query, herb.ID, herb.Name, herb.LatinName,
-		herb.Description, herb.IsPoisonous, herb.ImagePath)
+	result, err := r.db.Exec(query, herb.Name, herb.LatinName,
+		herb.Description, herb.IsPoisonous, herb.ImagePath, herb.ID)
 
 	if err != nil {
 		return fmt.Errorf("ошибка обновления травы: %v", err)
@@ -119,7 +124,7 @@ func (r *HerbRepository) Update(herb *models.Herb) error {
 
 // Delete removes a herb from the database
 func (r *HerbRepository) Delete(id int) error {
-	query := `DELETE FROM herbs WHERE id = $1`
+	query := `DELETE FROM herbs WHERE id = ?;`
 
 	result, err := r.db.Exec(query, id)
 	if err != nil {
@@ -144,7 +149,7 @@ func (r *HerbRepository) Search(name string) ([]models.Herb, error) {
 		SELECT id, name, latin_name, description, is_poisonous, image_path, created_at
 		FROM herbs 
 		WHERE LOWER(name) LIKE LOWER($1) OR LOWER(latin_name) LIKE LOWER($1)
-		ORDER BY name`
+		ORDER BY name;`
 
 	rows, err := r.db.Query(query, "%"+name+"%")
 	if err != nil {
@@ -172,7 +177,7 @@ func (r *HerbRepository) GetPoisonous() ([]models.Herb, error) {
 		SELECT id, name, latin_name, description, is_poisonous, image_path, created_at
 		FROM herbs 
 		WHERE is_poisonous = true
-		ORDER BY name`
+		ORDER BY name;`
 
 	rows, err := r.db.Query(query)
 	if err != nil {
