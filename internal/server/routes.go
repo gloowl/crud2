@@ -18,9 +18,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.HandleFunc("/", s.HelloWorldHandler)
 	r.HandleFunc("/ping", s.PingHandler)
 
-	repo := repository.NewHerbRepository(s.db.Conn())
-	herbHandler := NewHerbHandler(repo)
+	herb_repo := repository.NewHerbRepository(s.db.Conn())
+	herbHandler := NewHerbHandler(herb_repo)
 	herbHandler.RegisterRoutes(r)
+
+	userHandler := NewUserHandler(s.db.Conn())
+	userHandler.RegisterRoutes(r)
 
 	r.HandleFunc("/health", s.healthHandler)
 
