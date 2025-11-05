@@ -4,6 +4,7 @@ import (
 	"crud2/internal/models"
 	"database/sql"
 	"fmt"
+	"strings"
 )
 
 type HerbRepository struct {
@@ -61,11 +62,27 @@ func (r *HerbRepository) GetByID(id int) (*models.Herb, error) {
 }
 
 // GetAll retrieves all herbs
-func (r *HerbRepository) GetAll() ([]models.Herb, error) {
+func (r *HerbRepository) GetAll(sortField, sortOrder string) ([]models.Herb, error) {
 	query := `
 		SELECT id, name, latin_name, description, is_poisonous, image_path, created_at
-		FROM herbs 
-		ORDER BY name`
+		FROM herbs`
+
+	validFields := map[string]bool{
+		"id":         true,
+		"name":       true,
+		"latin_name": true,
+		"created_at": true,
+	}
+
+	if !validFields[sortField] {
+		sortField = "id"
+	}
+
+	if strings.ToUpper(sortOrder) != "DESC" {
+		sortOrder = "ASC"
+	}
+
+	query += fmt.Sprintf(" ORDER BY %s %s", sortField, sortOrder)
 
 	rows, err := r.db.Query(query)
 	if err != nil {
