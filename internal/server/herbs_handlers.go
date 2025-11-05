@@ -20,13 +20,13 @@ func NewHerbHandler(repo *repository.HerbRepository) *HerbHandler {
 
 // RegisterRoutes adds herb routes to router
 func (h *HerbHandler) RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/herbs", h.GetAll).Methods("GET")
-	r.HandleFunc("/herbs/{id:[0-9]+}", h.GetByID).Methods("GET")
-	r.HandleFunc("/herbs", h.Create).Methods("POST")
-	r.HandleFunc("/herbs/{id:[0-9]+}", h.Update).Methods("PUT")
-	r.HandleFunc("/herbs/{id:[0-9]+}", h.Delete).Methods("DELETE")
-	r.HandleFunc("/herbs/search", h.Search).Methods("GET")
-	r.HandleFunc("/herbs/poisonous", h.GetPoisonous).Methods("GET")
+	r.HandleFunc("", h.GetAll).Methods("GET")
+	r.HandleFunc("/{id:[0-9]+}", h.GetByID).Methods("GET")
+	r.HandleFunc("", h.Create).Methods("POST")
+	r.HandleFunc("/{id:[0-9]+}", h.Update).Methods("PUT")
+	r.HandleFunc("/{id:[0-9]+}", h.Delete).Methods("DELETE")
+	r.HandleFunc("/search", h.Search).Methods("GET")
+	r.HandleFunc("/poisonous", h.GetPoisonous).Methods("GET")
 }
 
 // GET /herbs
