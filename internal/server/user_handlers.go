@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crud2/internal/auth"
 	"crud2/internal/models"
 	"crud2/internal/repository"
 	"database/sql"
@@ -97,18 +98,20 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user == nil {
+	if user == nil || !user.CheckPassword(req.Password) {
 		http.Error(w, "Неверный логин или пароль", http.StatusUnauthorized)
 		return
 	}
 
-	if !user.CheckPassword(req.Password) {
-		http.Error(w, "Неверный логин или пароль", http.StatusUnauthorized)
+	token, err := auth.GenerateToken(user.UserName)
+	if err != nil {
+		http.Error(w, "Ошибка генерации токена: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	_ = json.NewEncoder(w).Encode(map[string]string{
 		"message":  "Успешный вход",
 		"username": user.UserName,
+		"token":    token,
 	})
 }

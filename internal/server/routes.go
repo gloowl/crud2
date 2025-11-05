@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crud2/internal/middleware"
 	"crud2/internal/repository"
 	"encoding/json"
 	"log"
@@ -18,9 +19,12 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.HandleFunc("/", s.HelloWorldHandler)
 	r.HandleFunc("/ping", s.PingHandler)
 
+	api := r.PathPrefix("/herbs").Subrouter()
+	api.Use(middleware.JWTAuth)
+
 	herb_repo := repository.NewHerbRepository(s.db.Conn())
 	herbHandler := NewHerbHandler(herb_repo)
-	herbHandler.RegisterRoutes(r)
+	herbHandler.RegisterRoutes(api)
 
 	userHandler := NewUserHandler(s.db.Conn())
 	userHandler.RegisterRoutes(r)
