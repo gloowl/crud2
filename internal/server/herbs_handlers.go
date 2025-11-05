@@ -31,7 +31,10 @@ func (h *HerbHandler) RegisterRoutes(r *mux.Router) {
 
 // GET /herbs
 func (h *HerbHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	herbs, err := h.repo.GetAll()
+	sortField := r.URL.Query().Get("sort")
+	sortOrder := r.URL.Query().Get("order")
+
+	herbs, err := h.repo.GetAll(sortField, sortOrder)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
